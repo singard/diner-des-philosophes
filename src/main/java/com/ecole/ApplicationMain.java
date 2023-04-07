@@ -4,23 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 
 import com.ecole.model.entities.Etat;
 import com.ecole.model.entities.Philosophe;
-import com.ecole.service.ChangeStat;
 
 public class ApplicationMain {
 
 	public static void main(String[] args) {
 
 		 Scanner scanner = new Scanner(System.in);
-	        List<Etat> listFutureResult = new ArrayList<Etat>();
 	        List<Philosophe> listPhilosophes = new ArrayList<Philosophe>();
 
 	        System.out.print("Combien de philosophes voulez-vous créer ? ");
