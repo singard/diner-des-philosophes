@@ -1,53 +1,46 @@
 package com.ecole.model.entities;
 
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Semaphore;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
+@Slf4j
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class Philosophe implements Runnable {
 
 	private int numero;
 	private Etat etat;
-	
-
-	private Semaphore[] eatingSem;
+	private Semaphore[] baguettes;
 	private int nbPhilosophes;
-	private final Object lock = new Object(); 
-
-
+	
 	@Override
 	public void run() {
 		while (!Thread.currentThread().isInterrupted()) {
-
-
 			try {
-				if (etat==Etat.MANGER || etat==Etat.PENSER) {
-
+				if (etat==Etat.MANGER || etat==Etat.PENSER) {//si le philosophe change d'état principale alors une diré aléatoire lui est attribuer
 					Random random = new Random();
-					int randomNumber = random.nextInt(1+numero%3) + 1;
-					Thread.sleep(randomNumber * 1000);
+					int randomNumber = random.nextInt(1+numero%3) + 1;//nombre aléatoire entre 1 et 3
+					Thread.sleep(randomNumber * 1000);//durer compris entre 1 et 3 secondes
 				}
-				//System.out.println("numéro "+numero+" fait des choses");
+				log.info("numéro "+numero+" fait des choses");
 
 
 				switch (etat) {
 				case PENSER:
 
 //					System.out.println("numéro "+numero+" je veux manger mais : "+voisinGauche.getEtat()+" et "+voisinDroite.getEtat());
-					synchronized (eatingSem) {
+					synchronized (baguettes) {
 						if (fourchettesDisponibles()) {
 
 							// Acquisition des baguettes
-							eatingSem[numero ].acquire(); // Baguette droite
-							eatingSem[(numero +1) % nbPhilosophes].acquire(); // Baguette gauche
+							baguettes[numero ].acquire(); // Baguette droite
+							baguettes[(numero +1) % nbPhilosophes].acquire(); // Baguette gauche
 							synchronized (etat) {
 								etat = Etat.MANGER;
 								changerEtat();
@@ -68,8 +61,8 @@ public class Philosophe implements Runnable {
 
 
 					// Libération des baguettes
-					eatingSem[numero].release(); // Baguette droite
-					eatingSem[(numero +1) % nbPhilosophes].release(); // Baguette gauche
+					baguettes[numero].release(); // Baguette droite
+					baguettes[(numero +1) % nbPhilosophes].release(); // Baguette gauche
 					synchronized (etat) {
 
 						etat = Etat.PENSER;
@@ -81,11 +74,11 @@ public class Philosophe implements Runnable {
 					break;
 
 				case BESOIN_DE_MANGER:
-					synchronized (eatingSem) { 
+					synchronized (baguettes) { 
 						if (fourchettesDisponibles()) {
 							// Acquisition des baguettes
-							eatingSem[numero].acquire(); // Baguette droite
-							eatingSem[(numero +1) % nbPhilosophes].acquire(); // Baguette gauche
+							baguettes[numero].acquire(); // Baguette droite
+							baguettes[(numero +1) % nbPhilosophes].acquire(); // Baguette gauche
 						synchronized (etat) {
 							etat = Etat.MANGER;
 							changerEtat();
@@ -116,7 +109,7 @@ public class Philosophe implements Runnable {
 //		System.out.println("je suis numéro "+numero+" j'ai changer d'état "+etat);
 	}
 	public boolean fourchettesDisponibles() {
-	    return eatingSem[numero ].availablePermits() > 0 && eatingSem[(numero +1) % nbPhilosophes].availablePermits() > 0;
+	    return baguettes[numero ].availablePermits() > 0 && baguettes[(numero +1) % nbPhilosophes].availablePermits() > 0;
 	}
 
 
