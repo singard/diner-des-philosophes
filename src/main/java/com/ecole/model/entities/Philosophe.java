@@ -18,58 +18,47 @@ public class Philosophe implements Runnable {
 	private Etat etat;
 	private Semaphore[] baguettes;
 	private int nbPhilosophes;
-	
+
 	@Override
 	public void run() {
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
-				if (etat==Etat.MANGER || etat==Etat.PENSER) {//si le philosophe change d'état principale alors une diré aléatoire lui est attribuer
+				/* Si le philosophe change d'état principale (manger ou penser) alors une diré aléatoire lui est attribuer 
+				 * qui sera la durer qu'il va attendre avant de changer d'état.
+				 * C'est nombre aléatoire entre 1 et 3 seconde
+				 */
+				if (etat==Etat.MANGER || etat==Etat.PENSER) {
 					Random random = new Random();
-					int randomNumber = random.nextInt(1+numero%3) + 1;//nombre aléatoire entre 1 et 3
-					Thread.sleep(randomNumber * 1000);//durer compris entre 1 et 3 secondes
+					int randomNumber = random.nextInt(1+numero%3) + 1;
+					Thread.sleep(randomNumber * 1000);
 				}
-				log.info("numéro "+numero+" fait des choses");
-
+				log.debug("numéro "+numero+" fait des choses");
 
 				switch (etat) {
 				case PENSER:
 
-//					System.out.println("numéro "+numero+" je veux manger mais : "+voisinGauche.getEtat()+" et "+voisinDroite.getEtat());
 					synchronized (baguettes) {
 						if (fourchettesDisponibles()) {
-
 							// Acquisition des baguettes
-							baguettes[numero ].acquire(); // Baguette droite
-							baguettes[(numero +1) % nbPhilosophes].acquire(); // Baguette gauche
-							synchronized (etat) {
-								etat = Etat.MANGER;
-								changerEtat();
-							}
+							baguettes[numero ].acquire(); // Baguette de droite
+							baguettes[(numero +1) % nbPhilosophes].acquire(); // Baguette de gauche
+
+							etat = Etat.MANGER;
+							changerEtat();
 
 						}else {
-							synchronized (etat) {
-								etat = Etat.BESOIN_DE_MANGER;
-								changerEtat();
-							}
-
+							etat = Etat.BESOIN_DE_MANGER;
+							changerEtat();
 						}
-
 					}
 					break;
 
 				case MANGER:
-
-
 					// Libération des baguettes
-					baguettes[numero].release(); // Baguette droite
-					baguettes[(numero +1) % nbPhilosophes].release(); // Baguette gauche
-					synchronized (etat) {
+					baguettes[numero].release(); // Baguette de droite
+					baguettes[(numero +1) % nbPhilosophes].release(); // Baguette de gauche
 
-						etat = Etat.PENSER;
-
-
-					}
-
+					etat = Etat.PENSER;
 					changerEtat();
 					break;
 
@@ -79,20 +68,13 @@ public class Philosophe implements Runnable {
 							// Acquisition des baguettes
 							baguettes[numero].acquire(); // Baguette droite
 							baguettes[(numero +1) % nbPhilosophes].acquire(); // Baguette gauche
-						synchronized (etat) {
+
 							etat = Etat.MANGER;
-							changerEtat();
+							changerEtat();							
 						}
 					}
-
-					}
-					
-
-
 					break;
 				}	
-
-
 			}catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -106,10 +88,11 @@ public class Philosophe implements Runnable {
 
 	public void changerEtat() throws InterruptedException {
 
-//		System.out.println("je suis numéro "+numero+" j'ai changer d'état "+etat);
+		log.debug("je suis numéro "+numero+" j'ai changer d'état "+etat);
 	}
 	public boolean fourchettesDisponibles() {
-	    return baguettes[numero ].availablePermits() > 0 && baguettes[(numero +1) % nbPhilosophes].availablePermits() > 0;
+		// Cette action est dans un synchronized cela veut dire que les philosophes peuvent y avoir accés une personne à la fois
+		return baguettes[numero ].availablePermits() > 0 && baguettes[(numero +1) % nbPhilosophes].availablePermits() > 0;
 	}
 
 
