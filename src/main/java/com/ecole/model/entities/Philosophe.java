@@ -79,17 +79,12 @@ public class Philosophe implements Runnable {
 				e.printStackTrace();
 			}
 		}
-
-
-
-
 	}
-
 
 	public void changerEtat() throws InterruptedException {
-
 		log.debug("je suis numéro "+numero+" j'ai changer d'état "+etat);
 	}
+	
 	public boolean fourchettesDisponibles() {
 		// Cette action est dans un synchronized cela veut dire que les philosophes peuvent y avoir accés une personne à la fois
 		return baguettes[numero ].availablePermits() > 0 && baguettes[(numero +1) % nbPhilosophes].availablePermits() > 0;
