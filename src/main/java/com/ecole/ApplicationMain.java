@@ -8,76 +8,72 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
 
 import com.ecole.model.entities.Etat;
 import com.ecole.model.entities.Philosophe;
 
-public class ApplicationMain {
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
+public class ApplicationMain {
+	
+	public static int NB_PHILOSOPHE = 0;
+	public static int EXECUTION_TIME_IN_SEC = 0;
+	
 	public static void main(String[] args) {
 
-		 Scanner scanner = new Scanner(System.in);
-	        List<Philosophe> listPhilosophes = new ArrayList<Philosophe>();
+		Scanner scanner = new Scanner(System.in);
+		List<Philosophe> listPhilosophes = new ArrayList<Philosophe>();
+		//demande le nombre de philosophes à la table
+		log.info("Combien de philosophes voulez-vous créer ? ");
+		NB_PHILOSOPHE = scanner.nextInt();
+		int nbBagettes = NB_PHILOSOPHE ;
+		log.info("quelle durer le repas va-t-il durer ? ");
+		EXECUTION_TIME_IN_SEC = scanner.nextInt();
+		scanner.close();
+		log.info("nombre n = "+nbBagettes);
+		/* Création d'une liste de semaphore corespondant au nombre de couverts sur 
+		 * la table, qui correspond aussi au nombre de philosophes présent sur cette même table
+		 */
+		Semaphore eatingSem[] = new Semaphore[nbBagettes];
+		for (int i = 0; i < nbBagettes; i++) {
+			eatingSem[i] = new Semaphore(1);
+			log.info("create semaphor");
+		}
+		/* Création des philosophes autour de la table et
+		 * création de la pool de threads. Un thread par philosophe
+		 */
+		Philosophe[] philosophes = new Philosophe[NB_PHILOSOPHE];
+		ExecutorService executor = Executors.newFixedThreadPool(NB_PHILOSOPHE);
 
-	        System.out.print("Combien de philosophes voulez-vous créer ? ");
-	        int nbPhilosophes = scanner.nextInt();
-//	        int n = (nbPhilosophes % 2 == 0) ? nbPhilosophes / 2 : (nbPhilosophes + 1) / 2;
-	        int n = nbPhilosophes ;
-	        System.out.println("nombre n"+n);
-	        Semaphore eatingSem[] = new Semaphore[n];
-	        for (int i = 0; i < n; i++) {
-	            eatingSem[i] = new Semaphore(1);
-	            System.out.println("create semaphor");
-	        }
+		for (int i = 0; i < NB_PHILOSOPHE; i++) {
 
-	        // Création des philosophes et attribution des voisins
-	        Philosophe[] philosophes = new Philosophe[nbPhilosophes];
-	        for (int i = 0; i < nbPhilosophes; i++) {
-	           
-	            philosophes[i] = new Philosophe(i + 1, Etat.PENSER, eatingSem,nbPhilosophes);
-	            }
-	        
-	        for (int i = 0; i < nbPhilosophes; i++) {
-	            Philosophe voisinGauche = philosophes[(i + nbPhilosophes - 1) % nbPhilosophes];
-	            Philosophe voisinDroite = philosophes[(i + 1) % nbPhilosophes];
-	            philosophes[i] = new Philosophe(i , Etat.PENSER, eatingSem,nbPhilosophes);
-//	            System.out.println("Philosophe " + philosophes[i].getNumero() + " voisinGauche " + philosophes[i].getVoisinGauche().getNumero() + " voisinDroite " + philosophes[i].getVoisinDroite().getNumero());
-	        }
-
-
-
-		ExecutorService executor = Executors.newFixedThreadPool(nbPhilosophes);
-		CompletionService<Etat> completionService = new ExecutorCompletionService<>(executor);
-
-		for (Philosophe philosophe : philosophes) {
-			listPhilosophes.add(philosophe);
-			completionService.submit(philosophe, null);
-
-			System.out.println("create philosophe");
+			philosophes[i] = new Philosophe(i , Etat.PENSER, eatingSem);
+			executor.execute(philosophes[i]);
+			listPhilosophes.add(philosophes[i]);
+			log.info("create philosophe");
 		}
 
 		try {
-			int numIterations = 20;
-			for (int i = 0; i < numIterations; i++) {
+			for (int i = 0; i < EXECUTION_TIME_IN_SEC; i++) {
+				log.info("------------------------------------------------");
+				for (Philosophe philosophe : listPhilosophes) {
 
-				synchronized (completionService) {
-					System.out.println("\n\r------------------------------------------------");
-					for (Philosophe philosophe : listPhilosophes) {
-						System.out.flush();
-						System.out.print("| P " + philosophe.getNumero() + " : " + philosophe.getEtat());
-						System.out.flush();
-					}
+					log.info("| P " + philosophe.getNumero() + " : " + philosophe.getEtat());
 				}
-				System.out.println("\n\r------------------------------------------------");
+				log.info("------------------------------------------------");
 				Thread.sleep(1000);
 			}
+			
+			executor.shutdown();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		System.out.println("fin du programme");
-		executor.shutdown();
-
 	}
 
 
