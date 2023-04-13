@@ -1,17 +1,9 @@
 package com.ecole;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-
 import com.ecole.model.entities.Etat;
 import com.ecole.model.entities.Philosophe;
 
