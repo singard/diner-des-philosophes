@@ -77,9 +77,9 @@ public class ApplicationMain {
 	public static void userRequest() {
 		Scanner scanner = new Scanner(System.in);
 		//demande le nombre de philosophes à la table
-		log.info("Combien de philosophes voulez-vous créer ? ");
+		log.info("Combien de philosophes voulez-vous créer (minimum 5 pour être interessant ) ? ");
 		NB_PHILOSOPHE = scanner.nextInt();
-		log.info("quelle durer le repas va-t-il durer ? ");
+		log.info("quelle durer (en seconde) le repas va-t-il durer ? ");
 		EXECUTION_TIME_IN_SEC = scanner.nextInt();
 		scanner.close();
 		log.info("nombre n = "+NB_PHILOSOPHE);
